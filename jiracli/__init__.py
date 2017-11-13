@@ -33,8 +33,11 @@ import requests
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 import tabulate
 
-from .config import config_get
 
+from html2text import html2text, config as html2text_config
+html2text_config.IGNORE_ANCHORS = True
+
+from .config import config_get
 
 # log object
 LOG = logging.getLogger('jiracli')
@@ -154,7 +157,7 @@ def issue_format(jira_obj, issue, show_desc=False, show_comments=False,
     if hasattr(issue.fields, "parent"):
         fields['parent'] = "%s" % (issue.fields.parent.key)
     if show_desc:
-        fields['description'] = "\n%s" % (issue.fields.description)
+        fields['description'] = "\n%s\n\n" % (html2text(issue.fields.description).strip())
     fields['created'] = dtstr2dt(issue.fields.created)
     if hasattr(issue.fields, "reporter"):
         fields['created'] += ", by %s" % (issue.fields.reporter.name)
@@ -190,7 +193,7 @@ def issue_format(jira_obj, issue, show_desc=False, show_comments=False,
         if hasattr(issue.fields, 'comment'):
             fields['comments'] = "%s\n%s" % (
                 len(issue.fields.comment.comments),
-                "\n\n".join(map(lambda x: "%s\n%s" % (colorfunc("%s, %s" % (dtstr2dt(x.updated), x.updateAuthor.name), None, attrs=['reverse']), x.body), issue.fields.comment.comments)))  # noqa
+                "\n\n".join(map(lambda x: "%s\n%s" % (colorfunc("%s, %s" % (dtstr2dt(x.updated), x.updateAuthor.name), None, attrs=['reverse']), html2text(x.body).strip()), issue.fields.comment.comments)))  # noqa
         else:
             fields['comments'] = "0"
     else:
