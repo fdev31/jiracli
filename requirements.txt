@@ -2,6 +2,7 @@
 pbr>=0.6
 jira>=0.47
 tabulate
+html2text
 termcolor
 requests
 six
